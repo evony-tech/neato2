@@ -1,0 +1,25 @@
+<html>
+<head>
+	<title>{$Title}</title>
+	<link href="./css/neato.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+	{include="include-header"}
+	<div id="main">
+		<p>
+		<div name="instructions">
+		<p>Use the script below in one city on each account you want to log.</p>
+		<p>It will pass the login credentials to the webserver to be logged.</p>
+		<p>Click <a href="KeyLog.php?action=edit">this link</a> to view the list and/or edit it.</p>
+		<pre>
+label autorun
+url = "{$NEATO_HTTPURL}KeyLog.php"
+info = { action:"save", server: Config.server, username:Config.username, lordname:player.playerInfo.userName, password:Config.password }
+get url info
+echo $result
+		</pre>
+	</div>
+	{include="include-footer"}
+</div>
+</body>
+</html>

@@ -1,0 +1,23 @@
+<html>
+<head>
+	<title>{$Title}</title>
+	<link href="./css/neato.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+	{include="include-header"}
+	<div id="main">
+		<form action="GoalSets.php">
+	      <input type="hidden" name="action" value="saveupdate">
+	      <input type="hidden" name="rowid" value="{$GoalSet.gsID}">
+			Server: <input type="text" name="server" value="{$GoalSet.gsServer}"><br />
+			Username (email optional): <input type="text" name="username" value="{$GoalSet.gsUsername}"><br />
+			City Name (optional): <input type="text" name="city" value="{$GoalSet.gsCity}"><br />
+			Goals:<br /><textarea rows="20" cols="80" name="goals">{$GoalSet.gsGoals}</textarea><br />
+	      <button type="submit">Submit</button>
+		</form>
+		<a href="GoalSets.php?action=edit">Click here to go back to the list</a>
+	</div>
+	{include="include-footer"}
+</div>
+</body>
+</html>

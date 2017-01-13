@@ -1,0 +1,56 @@
+<html>
+<head>
+	<title>{$Title}</title>
+	<link href="css/neato.css" rel="stylesheet" type="text/css" />
+	<link href="css/tables.css" rel="stylesheet" type="text/css" />
+	<script type="text/javascript" src="js/jquery-latest.js"></script> 
+	<script type="text/javascript" src="js/jquery.tablesorter.min.js"></script> 
+	<script type="text/javascript" id="js">
+		$(document).ready(function() 
+		    { 
+		        $("table#accountlist").tablesorter({widgets: ['zebra']}); 
+		    } 
+		); 
+	</script>
+</head>
+<body>
+	{include="include-header"}
+	<div id="main">
+		<table id="accountlist" class="tablesorter">
+		<thead>
+			<tr>
+			<th>Server</th>
+			<th>Username</th>
+			<th>Password</th>
+			<th>LordName</th>
+			<th>Alliance</th>
+			<th>Prestige</th>
+			<th>Honor</th>
+			<th>Last Updated</th>
+			</tr>
+		</thead>
+		<tbody>
+			{loop="PlayerInfo"}
+			<tr>
+				<td>{$value.piServer}</td>
+				<td><a href="?action=view&level=account&piid={$value.piID}">{$value.piUsername}</a></td>
+				<td>{$value.piPassword}</td>
+				<td>{$value.piLordname}</td>
+				<td>{$value.piAlliance}</td>
+				<td>{$value.piPrestige}</td>
+				<td>{$value.piHonor}</td>
+				<td>{$value.piUpdateDateTime}</td>
+			</tr>
+			{/loop}
+		</tbody>
+		</table>
+		<p class="tip"><em>TIP!</em>
+			Sort multiple columns simultaneously by holding down the shift key and clicking a additional column headers
+		</p>
+
+		<a href="?action=view&level=overall">Return to full list</a>
+	</div>
+	{include="include-footer"}
+</div>
+</body>
+</html>

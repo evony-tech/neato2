@@ -1,0 +1,64 @@
+body {
+  font-family: Roboto Slab;
+  color: #330066;
+  background: -webkit-linear-gradient(top, rgba(233, 233, 158, 0.53), rgb(176, 228, 207), rgba(62, 5, 245, 0.31), rgba(64, 211, 51, 0.32), rgb(248, 236, 214));
+  padding: 20px;
+  margin: 0px;
+}
+@font-face {
+  font-family: 'Roboto Slab';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Roboto Slab Regular'), local('RobotoSlab-Regular'), url(http://themes.googleusercontent.com/static/fonts/robotoslab/v1/y7lebkjgREBJK96VQi37ZobN6UDyHWBl620a-IRfuBk.woff) format('woff');
+}
+@font-face {
+  font-family: 'Joti One';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Joti One'), local('JotiOne-Regular'), url(http://themes.googleusercontent.com/static/fonts/jotione/v1/LVl1n76aEips1R1baeB3RPesZW2xOQ-xsNqO47m55DA.woff) format('woff');
+}
+#header h1 {
+  font-family: Joti One;
+  text-align: center;
+}
+img {
+  display: block;
+  margin: 0 auto;
+}
+#main {
+  margin-top: 46px;
+  padding: 30px;
+  text-align: justify;
+  background: -webkit-linear-gradient(top, rgb(245, 248, 210), rgb(205, 236, 205), rgb(183, 229, 231));
+  -webkit-box-shadow: 10px 10px 21px black;
+  border-radius: 30px;
+}
+#version {
+  font-size: 11px;
+}
+a:link {color:#000099;text-decoration:none;}
+a:visited {color:#000099;text-decoration:none;}
+a:hover {color:#000099;text-decoration:underline;}  
+a:active {color:#000099;text-decoration:underline;} 
+pre {
+  white-space: pre-wrap;
+  white-space: -moz-pre-wrap;
+  white-space: -o-pre-wrap;
+  background: #faf8f0;
+  display: block;
+  padding: 0.5em 1em;
+  border: 1px solid #bebab0;
+}
+div#header{
+  clear:both;
+}
+div#footer{
+  width:80%;
+  margin-top:20px;
+  padding:20px;
+  clear:both;
+}
+#footer p{
+  text-align:center;
+  font-size:0.8em; 
+}

@@ -1,0 +1,54 @@
+<html>
+<head>
+	<title>{$Title}</title>
+	<link href="./css/neato.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+	{include="include-header"}
+	<div id="main">
+		<a href="GoalSets.php?action=edit">View the existing list of goals here</a>
+		<div name="instructions">
+			<p>This will load your goals in ever-increasing specificity.</p>
+			<p>If you have a goalset with server, username and city name blank, it'll return that.</p>
+			<p>After that, it'll return a row with the server set but everything else blank. This
+			lets you have a server-specific set of goals that overrides the full global.</p>
+			<p>After that, it'll return a row with server and username (email) set so you can have
+			a set of goals specific to that one account on that one server.</p>
+			<p>After that, it'll return a row with the server, username AND city so you can
+			have a set of goals specific to that particular city in that account, on that server.</p>
+			<p>Use the script below in EACH AND EVERY
+			city you want to load global goals.</p>
+			<p>You do not need any of the above levels.  I'd suggest at least the global so every
+			city will get SOMETHING but it's not truly necessary.</p>
+		</div>
+		<form action="GoalSets.php">
+	      <input type="hidden" name="action" value="save">
+			Server: <input type="text" name="server"><br />
+			Username (email optional): <input type="text" name="username"><br />
+			City Name (optional): <input type="text" name="city"><br />
+			Goals:<br /><textarea rows="20" cols="80" name="goals"></textarea><br />
+	      <button type="submit">Submit</button>
+		</form>
+		<div name="LoadGlobalsScript" type="script">
+		<pre>
+label autorun
+// make sure goals saved in 8 are "safe" in case server is down
+loadgoals 8
+
+// Edit the URL accordingly
+url = "{$NEATO_HTTPURL}GoalSets.php"
+params = { action:"get", server: Config.server, username:Config.username, city:city.name, rand:date() }
+
+get url params
+output = $result.split("\n")
+
+execute output.shift()
+if output.length repeat
+		</pre>
+		</div>
+	</div>
+	</div>
+	{include="include-footer"}
+</div>
+</body>
+</html>

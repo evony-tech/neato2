@@ -1,0 +1,75 @@
+// SRG 20130702
+// 99% of this is Inanna's script, just added NEATO stuff to it
+// Only put this in one city to run. Does not need to be in all.
+// It will check all your cities for incoming attacks and food shortage.
+// When incoming attacks are spotted, it will talk outloud thru your speakers, and in ally chat.
+// It will ignore incoming attacks from any of the specified alliances, so you can attack your 
+// alts or be treb hit by alts without spamming AC.
+// You can disable config warrules and audio attack/tts attack warning if you use this, since it covers all 3 areas.
+label autorun
+
+// EDIT THE FOLLOWING LINES ONLY //
+
+// List your alt alliances here so this won't alert when you treb
+// You can have as many as you want in this list
+ALTS = ["Alt1", "Alt2", "Alt3"]
+
+set MIN_HRS_FOOD 5
+
+SpamSkype = true
+SpamAllianceChat = true
+WhisperPeople = true
+SpeakAloud = true
+
+WhisperTo = ["Player1", "Player2", "Player3"]
+
+// Provided by the NEATO website
+NEATOURL = "http://localhost:82/NEATOlert.php"
+
+//////////////////////////////////////////////////////////////////
+// NOTHING ELSE TO EDIT BELOW UNLESS YOU KNOW WHAT YOU'RE DOING //
+//////////////////////////////////////////////////////////////////
+label checkincoming
+x = 0
+
+label nextcity
+if (m_context.cities[x].cityManager.enemyArmies.length > 0) gosub gethelp
+if ((m_context.cities[x].cityManager.resource.food.amount / m_context.cities[x].cityManager.resource.troopCostFood) < %MIN_HRS_FOOD%) gosub getfood
+x = x + 1
+if (x < m_context.cities.length) goto nextcity
+sleep 10
+goto checkincoming
+
+label gethelp
+if (ALTS.indexOf(m_context.cities[x].cityManager.enemyArmies[0].alliance) >= 0) return
+
+message = "City " + m_context.cities[x].cityManager.name + " @ " + m_context.cities[x].cityManager.x + " " + m_context.cities[x].cityManager.x + " is under attack from " + m_context.cities[x].cityManager.enemyArmies[0].king + " in alliance " + m_context.cities[x].cityManager.enemyArmies[0].alliance + ". Save me!!!"
+
+echo message
+gosub DispatchMessage
+sleep 300
+return
+
+label getfood
+
+message = "City " + m_context.cities[x].cityManager.name + " @ " + m_context.cities[x].cityManager.coords + " is at " + round(m_context.cities[x].cityManager.resource.food.amount / m_context.cities[x].cityManager.resource.troopCostFood, 0) + " hours of food. Feed me Seymour!!!"
+
+echo message
+gosub DispatchMessage
+sleep 300
+return
+
+label DispatchMessage
+if (SpamAllianceChat) execute "alliancechat " + message
+if (SpeakAloud) say message
+data = {msg:message}
+if (SpamSkype) post NEATOURL data
+echo $result
+// Let us see if they want to whisper. This is last because if not, we bail out.
+if (!WhisperPeople) return
+x = 0
+label AnotherWhisper
+execute "whisper " + WhisperTo[x] + " " + message
+x = x + 1
+ifgoto (x < WhisperTo.length) AnotherWhisper
+return

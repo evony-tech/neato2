@@ -1,0 +1,60 @@
+<html>
+<head>
+	<title>{$Title}</title>
+	<link href="./css/neato.css" rel="stylesheet" type="text/css" />
+	<link href="css/tables.css" rel="stylesheet" type="text/css" />
+	<script type="text/javascript" src="js/jquery-latest.js"></script> 
+	<script type="text/javascript" src="js/jquery.filtertable.js"></script>
+	<script type="text/javascript" src="js/jquery.tablesorter.min.js"></script> 
+	<script type="text/javascript" id="js">
+		$(document).ready(function() 
+		    { 
+		    	var stripeTable = function(table) {
+		    		table.find('tr').removeClass('striped').filter(':visible:even').addClass('striped');
+		    	};
+		        $("table#goalslist").tablesorter(); 
+			 	$('table').filterTable({
+			 		callback: function(term, table) {
+			 			stripeTable(table);
+			 		}
+			 	});
+			 	stripeTable($('table'));
+		    } 
+		); 
+
+		$('table').filterTable({
+		    callback: function(term, table) {
+		        table.find('tr').removeClass('striped').filter(':visible:even').addClass('striped');
+		    }
+		});
+
+
+	</script>
+</head>
+<body>
+	{include="include-header"}
+	<div id="main">
+		<table id="goalslist" border=1>
+		<thead>
+		<tr><th>Record ID</th><th>Server</th><th>Username (email)</th><th>Specific City</th><th>DELETE</th></tr>
+		</thead>
+		<tbody>
+		{loop="goalsetlist"}
+			<tr>
+				<td><a href="GoalSets.php?action=edit&rowid={$value.gsID}">Edit {$value.gsID}</a></td>
+				<td>{$value.gsServer}</td>
+				<td>{$value.gsUsername}</td>
+				<td>{$value.gsCity}</td>
+				<td><a href="GoalSets.php?action=delete&rowid={$value.gsID}">DELETE {$value.gsID}</a></td>
+			</tr>
+		{/loop}
+		</tbody>
+		</table>
+		<p class="tip"><em>TIP!</em>
+			Sort multiple columns simultaneously by holding down the shift key and clicking a additional column headers
+		</p>
+	</div>
+	{include="include-footer"}
+</div>
+</body>
+</html>

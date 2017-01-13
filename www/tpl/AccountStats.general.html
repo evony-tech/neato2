@@ -1,0 +1,28 @@
+<html>
+<head>
+	<title>{$Title}</title>
+	<link href="./css/neato.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+	{include="include-header"}
+	<div id="main">
+		<p>
+		<div name="instructions">
+		<p>Use the script below in all cities on each account you want to update account stats.</p>
+		<p>It will pass the account stats to the webserver to be logged.</p>
+		<p>Click <a href="AccountStats.php?action=edit">this link</a> to view the list and/or edit it.</p>
+		<pre>
+label autorun
+
+//UPDATE ACCOUNT INFORMATION
+url = "{$NEATO_HTTPURL}AccountStats.php"
+params = {action:"save", server:Config.server, lordname:player.playerInfo.userName, title:["Civilian","Knight","Baronet","Baron","Viscount","Earl","Marquis","Duke","Furstin","Prinzessin"][m_context.Player.playerInfo.titleId], cities:m_context.cities.length, cents:player.playerInfo.medal, ammies:m_context.ItemCount("player.box.gambling.3"), mars:m_context.ItemCount("player.box.hero.d"), aport:m_context.ItemCount("player.more.castle.1.a"), rport:m_context.ItemCount("consume.move.1"), wport:m_context.ItemCount("player.more.castle.1.c"), brokengates:m_context.ItemCount("player.box.present.money.77"), fleetfeet:m_context.ItemCount("player.box.present.money.70"), alchemist:m_context.ItemCount("player.box.present.money.72"), anabasis:m_context.ItemCount("player.experience.1.a"), epitome:m_context.ItemCount("player.experience.1.b"), onwars:m_context.ItemCount("player.experience.1.c"), xcal:m_context.ItemCount("hero.power.1"), won:m_context.ItemCount("hero.management.1"), nationmedals:m_context.ItemCount("hero.loyalty.9")} 
+get url params
+echo $result
+//END UPDATE ACCOUNT INFORMATION
+		</pre>
+	</div>
+	{include="include-footer"}
+</div>
+</body>
+</html>

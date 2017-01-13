@@ -1,0 +1,13 @@
+label autorun
+// make sure goals saved in 8 are "safe" in case server is down
+loadgoals 8
+
+// Edit the URL accordingly
+url = "http://<?=$_SERVER['HTTP_HOST']?>/GoalSets.php"
+params = { action:"get", server: Config.server, username:Config.username, city:city.name, rand:date() }
+
+get url params
+output = $result.split("\n")
+
+execute output.shift()
+if output.length repeat

@@ -1,0 +1,43 @@
+<html>
+    <head>
+        <title>{$Title}</title>
+        <link href="./css/neato.css" rel="stylesheet" type="text/css" />
+    </head>
+    <body>
+        {include="include-header"}
+        <div id="main">
+            <p>Provided by SumRandomTechGuys<br/>NEATOlert.php version 20130702</p>
+{if condition="$chatidlen > 0"}
+            <p>Your instant messenger needs to be configured to use NEATO. The first time you run NEATO, <b>NEATO</b> will ask for permission to communicate with it, and you need to authorize it.</p>
+            <img src="http://sumrandomguy.com/images/authorize-NEATOlert.png" />
+            <p>After you allow NEATOlert.exe to communicate with it, <a href="NEATOlert.php">reload this page!</a></p>
+{else}
+            <p><b>NEATOlert</b> is a Windows application that allows your NEAT bot to communicate with SKYP3.</p>
+            <p><b>NEATOlert</b> version of <a href="scripts\MonitorCityNEATO.txt">MonitorCity.txt</a></p>
+            <p><b>NEATOlert</b> Script Example: (Requires NEAT version 2838 or later)</p>
+            <p>
+<pre>
+url = "{$NEATO_HTTPURL}NEATOlert.php"
+message = "Help, "+player.playerInfo.userName+" city "+city.name+" ("+city.coords+") is under attack!"
+chatid = "{$chatid}"
+data = {msg:message,cid:chatid}
+post url data
+echo $result
+</pre>
+            </p>
+            <p>To find your Alliance Chat-room ID, open it up in your instant messenger and <a href="{$NEATO_HTTPURL}NEATOlert.php">refresh</a> this page. Every time this page loads, the active chatroom ID will be saved by NEATO.</p>
+            <p>The currently active Chat-room ID is: <b>{$chatid}</b></p>
+            <p>Note: you do not have to send the chat room ID, <b>NEATO</b> will use <b>{$chatid}</b> if you do not pass in cid - the cid is saved to a file called chatid.txt every time this page is refreshed. The only requirement is the msg variable...</p>
+            <p>You can test it by going to <a href="{$NEATO_HTTPURL}NEATOlert.php?msg=Testing123" target="_blank">{$NEATO_HTTPURL}NEATOlert.php?msg=Testing123</a> or by filling in the form below:</p>
+            <div style="width:640px;margin:10px;padding:10px;background:#eeeeee;">
+                <form name="input" action="{$NEATO_HTTPURL}NEATOlert.php" method="get">
+                    <span>Message:<br/><input name='msg' type='text' value='{$message}' size='100'></span><br/><br/>
+                    <span>Chat-ID: <input name='cid' type='text' value='{$chatid}' size='50'></span>
+                    <span style="float:right;"><input name='Send' type='submit'></span>
+                </form>
+            </div>
+{/if}
+        </div>
+        {include="include-footer"}
+    </body>
+</html>

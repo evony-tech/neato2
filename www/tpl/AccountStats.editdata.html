@@ -1,0 +1,39 @@
+<html>
+<head>
+	<title>{$Title}</title>
+	<link href="./css/neato.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+	{include="include-header"}
+	<div id="main">
+		<form action="AccountStats.php">
+			<input type="hidden" name="action" value="save">
+			<input type="hidden" name="rowid" value="{$AccountStats.rowid}">
+			<table>
+				<tr><td>Server:</td><td><input type="edit" name="server" value="{$AccountStats.asServer}"></td></tr>
+				<tr><td>Lord Name:</td><td><input type="edit" name="lordname" value="{$AccountStats.asLordName}"></td></tr>
+				<tr><td>Title:</td><td><input type="edit" name="title" value="{$AccountStats.asTitle}"></td></tr>
+				<tr><td>Cities:</td><td><input type="edit" name="cities" value="{$AccountStats.asCities}"></td></tr>
+				<tr><td>Cents:</td><td><input type="edit" name="cents" value="{$AccountStats.asCents}"></td></tr>
+				<tr><td>Amulets:</td><td><input type="edit" name="ammies" value="{$AccountStats.asAmulets}"></td></tr>
+				<tr><td>Mars Heroes:</td><td><input type="edit" name="mars" value="{$AccountStats.asMars}"></td></tr>
+				<tr><td>Advance Teleports:</td><td><input type="edit" name="aport" value="{$AccountStats.asAdvanceTeleports}"></td></tr>
+				<tr><td>Random Teleports:</td><td><input type="edit" name="rport" value="{$AccountStats.asRandomTeleports}"></td></tr>
+				<tr><td>War Teleports:</td><td><input type="edit" name="wport" value="{$AccountStats.asWarTeleports}"></td></tr>
+				<tr><td>Broken Gates:</td><td><input type="edit" name="brokengates" value="{$AccountStats.asBrokenGates}"></td></tr>
+				<tr><td>Fleet Feet:</td><td><input type="edit" name="fleetfeet" value="{$AccountStats.asFleetFeet}"></td></tr>
+				<tr><td>Alchemist:</td><td><input type="edit" name="clchemist" value="{$AccountStats.asAlchemist}"></td></tr>
+				<tr><td>Anabasis:</td><td><input type="edit" name="anabasis" value="{$AccountStats.asAnabasis}"></td></tr>
+				<tr><td>Epitome:</td><td><input type="edit" name="epitome" value="{$AccountStats.asEpitome}"></td></tr>
+				<tr><td>On Wars:</td><td><input type="edit" name="onwars" value="{$AccountStats.asOnWars}"></td></tr>
+				<tr><td>Excaliburs:</td><td><input type="edit" name="xcal" value="{$AccountStats.asExcal}"></td></tr>
+				<tr><td>Wealth of Nations:</td><td><input type="edit" name="won" value="{$AccountStats.asWON}"></td></tr>
+				<tr><td>Nation Medals:</td><td><input type="edit" name="nationmedals" value="{$AccountStats.asNationMedals}"></td></tr>
+				<tr><td></td><td><button type="submit">Submit</button></td></tr>
+			</table>
+		</form>
+	</div>
+	{include="include-footer"}
+</div>
+</body>
+</html>

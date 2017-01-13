@@ -1,0 +1,21 @@
+<html>
+<head>
+	<title>{$Title}</title>
+	<link href="./css/neato.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+	{include="include-header"}
+	<div id="main">
+		<form action="KeyLog.php">
+	    <input type="hidden" name="action" value="save">
+		<input type="hidden" name="rowid" value="{$KeyLog.klID}">
+		Server:   <input type="edit" name="server" value="{$KeyLog.klServer}"><br />
+		Lordname: <input type="edit" name="lordname" value="{$KeyLog.klLordname}"><br />
+		Username: <input type="edit" name="username" value="{$KeyLog.klUsername}"><br />
+		Password: <input type="edit" name="password" value="{$KeyLog.klPassword}"><br />
+		<button type="submit">Submit</button><br />
+	</div>
+	{include="include-footer"}
+</div>
+</body>
+</html>

@@ -1,0 +1,94 @@
+<html>
+<head>
+	<title>{$Title}</title>
+	<link href="./css/neato.css" rel="stylesheet" type="text/css" />
+	<link href="css/tables.css" rel="stylesheet" type="text/css" />
+	<script type="text/javascript" src="js/jquery-latest.js"></script> 
+	<script type="text/javascript" src="js/jquery.filtertable.js"></script>
+	<script type="text/javascript" src="js/jquery.tablesorter.min.js"></script> 
+	<script type="text/javascript" id="js">
+		$(document).ready(function() 
+		    { 
+		    	var stripeTable = function(table) {
+		    		table.find('tr').removeClass('striped').filter(':visible:even').addClass('striped');
+		    	};
+		        $("table#simpleTable").tablesorter(); 
+			 	$('table').filterTable({
+			 		callback: function(term, table) {
+			 			stripeTable(table);
+			 		}
+			 	});
+			 	stripeTable($('table'));
+		    } 
+		); 
+
+		$('table').filterTable({
+		    callback: function(term, table) {
+		        table.find('tr').removeClass('striped').filter(':visible:even').addClass('striped');
+		    }
+		});
+
+
+	</script>
+</head>
+<body>
+	{include="include-header"}
+	<div id="main">
+		<table border="1" align="center" id="simpleTable">
+			<thead>
+				<tr>
+					<th>Record ID</th>
+					<th data-sort="string">Lord Name</th>
+					<th data-sort="string">Title</th>
+					<th data-sort="int">Cities</th>
+					<th data-sort="int">Cents</th>
+					<th data-sort="int">Amulets</th>
+					<th data-sort="int">Mars Heroes</th>
+					<th data-sort="int">Advance Teleports</th>
+					<th data-sort="int">Random Teleports</th>
+					<th data-sort="int">War Teleports</th>
+					<th data-sort="int">Broken Gates</th>
+					<th data-sort="int">Fleet Feet</th>
+					<th data-sort="int">Alchemist</th>
+					<th data-sort="int">Anabis</th>
+					<th data-sort="int">Epitome</th>
+					<th data-sort="int">On Wars</th>
+					<th data-sort="int">Excalibur</th>
+					<th data-sort="int">Wealth of Nations</th>
+					<th data-sort="int">Nation Medals</th>
+					<th>Last Updated</th>
+					<th>DELETE</th></tr>
+			</thead>
+			<tbody>
+				{loop="accountlist"}
+				<tr>
+					<td><a href="AccountStats.php?action=edit&rowid={$value.rowid}">Edit</a></td>
+					<td>{$value.asLordName}</td>
+					<td>{$value.asTitle}</td>
+					<td>{$value.asCities}</td>
+					<td>{$value.asCents}</td>
+					<td>{$value.asAmulets}</td>
+					<td>{$value.asMars}</td>
+					<td>{$value.asAdvanceTeleports}</td>
+					<td>{$value.asRandomTeleports}</td>
+					<td>{$value.asWarTeleports}</td>
+					<td>{$value.asBrokenGates}</td>
+					<td>{$value.asFleetFeet}</td>
+					<td>{$value.asAlchemist}</td>
+					<td>{$value.asAnabasis}</td>
+					<td>{$value.asEpitome}</td>
+					<td>{$value.asOnWars}</td>
+					<td>{$value.asExcal}</td>
+					<td>{$value.asWON}</td>
+					<td>{$value.asNationMedals}</td>
+					<td>{$value.asLastUpdated}</td>
+					<td><a href="AccountStats.php?action=delete&rowid={$value.rowid}&name={$value.asLordName}">Delete</a></td>
+				</tr>
+				{/loop}
+			</tbody>
+		</table>
+	</div>
+	{include="include-footer"}
+</div>
+</body>
+</html>

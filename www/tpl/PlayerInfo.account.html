@@ -1,0 +1,83 @@
+<html>
+<head>
+	<title>{$Title}</title>
+	<link href="./css/neato.css" rel="stylesheet" type="text/css" />
+	<link href="css/tables.css" rel="stylesheet" type="text/css" />
+	<script type="text/javascript" src="js/jquery-latest.js"></script> 
+	<script type="text/javascript" src="js/jquery.filtertable.js"></script>
+	<script type="text/javascript" src="js/jquery.tablesorter.min.js"></script> 
+	<script type="text/javascript" id="js">
+		$(document).ready(function() 
+		    { 
+		    	var stripeTable = function(table) {
+		    		table.find('tr').removeClass('striped').filter(':visible:even').addClass('striped');
+		    	};
+		        $("table#citylist").tablesorter(); 
+			 	$('table').filterTable({
+			 		callback: function(term, table) {
+			 			stripeTable(table);
+			 		}
+			 	});
+			 	stripeTable($('table'));
+		    } 
+		); 
+
+		$('table').filterTable({
+		    callback: function(term, table) {
+		        table.find('tr').removeClass('striped').filter(':visible:even').addClass('striped');
+		    }
+		});
+
+
+	</script>
+</head>
+<body>
+	{include="include-header"}
+	<div id="main">
+		<table>
+			<tr><td>Server:</td>      <td>{$playerinfo.piServer}</td></tr>			
+			<tr><td>LordName:</td>    <td><b>{$playerinfo.piLordname}</b></td></tr>			
+			<tr><td>Alliance:</td>    <td>{$playerinfo.piAlliance}</td></tr>			
+			<tr><td>Prestige:</td>    <td>{$playerinfo.piPrestige}</td></tr>			
+			<tr><td>Honor:</td>       <td>{$playerinfo.piHonor}</td></tr>			
+			<tr><td>Last Updated:</td><td>{$playerinfo.piUpdateDateTime}</td></tr>			
+		</table>
+		<table border=1 id="citylist" class="tablesorter">
+			<thead>
+				<th>City Name</th>
+				<th>X</th>
+				<th>Y</th>
+				<th>Type</th>
+				<th>Notes</th>
+
+				<th>Gold</th>
+				<th>Food</th>
+				<th>Food Burn</th>
+				<th>Lumber</th>
+				<th>Stone</th>
+				<th>Iron</th>
+			</thead>
+			<tbody>
+				{loop="accountinfo"}
+				<tr>
+					<td>{$value.ciCityName}&nbsp;</td>
+					<td>{$value.ciX}&nbsp;</td>
+					<td>{$value.ciY}&nbsp;</td>
+					<td>{$value.ciType}&nbsp;</td>
+					<td>{$value.ciNotes}&nbsp;</td>
+					<td>{$value.riGoldLevel}&nbsp;</td>
+					<td>{$value.riFoodLevel}&nbsp;</td>
+					<td>{$value.riFoodBurnHour}&nbsp;</td>
+					<td>{$value.riLumberLevel}&nbsp;</td>
+					<td>{$value.riStoneLevel}&nbsp;</td>
+					<td>{$value.riIronLevel}&nbsp;</td>
+				</tr>
+				{/loop}
+			</tbody>
+		</table>
+		<a href="?action=view&level=overall">Return to full list</a>
+	</div>
+	{include="include-footer"}
+</div>
+</body>
+</html>
