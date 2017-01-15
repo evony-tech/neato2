@@ -2,10 +2,10 @@
 // MODULE_NAME: pokeNEATO
 // MODULE_DESC: maintain information about currently monitored bots and act as a method of communication between TheDirector and NEATO
 // MODULE_STATUS: In development
-// MODULE_VERSION: 3.33
+// MODULE_VERSION: 3.333c
 // pokeNEATO.php - monitors bot to server to director to neato communication/ health/ neatonote
-// last update Jan 10 2017 - TECH
-define("VERSION","3.33");
+// last update Jan 14 2017 - TECH
+define("VERSION","3.333c");
 /*
 
 PokeNEATO API as of Jan 2017
@@ -51,6 +51,7 @@ From NEATO (JSON)
   "msgtimeout":{SOMETIME},
   "traytipmsg":{MSG TO USER},
   "field":{SOMEFIELDNAME},
+  "fields":[{"profile":"xyz","field":"MaintainOn","value":"Yes"},{"profile":"xyz","field":"Alert","value":"1234"},{"profile":"xyz","field":"Cities","value":"9"}],
   "addparam":{SOMEPARAMETER},
   "neatonote":{NOTE TO ADD TO DIRECTOR}
 } 
@@ -123,10 +124,10 @@ if (isset($_REQUEST['notice'])) $notice = (strtolower(filter_var($_REQUEST['noti
 $action = ""; // from bot to pokeDirector
 if (isset($_REQUEST['action'])) $action = (strtolower(filter_var($_REQUEST['action'],FILTER_SANITIZE_STRING)));
 
-$status = ""; // from bot to pokeDirector
-if (isset($_REQUEST['status'])) $status = (filter_var($_REQUEST['status'],FILTER_SANITIZE_STRING));
+$alert = ""; // from bot to pokeDirector (replaces neatonote field, sends to Alert field.)
+if (isset($_REQUEST['alert'])) $alert = (filter_var($_REQUEST['alert'],FILTER_SANITIZE_STRING));
 
-$neatonote = $status; // from bot to pokeDirector
+$neatonote = ""; // from bot to pokeDirector
 if (isset($_REQUEST['neatonote'])) $neatonote = (filter_var($_REQUEST['neatonote'],FILTER_SANITIZE_STRING));
 
 $time = null; // from bot to pokeDirector
@@ -138,11 +139,8 @@ if (isset($_REQUEST['msg'])) $msg = (filter_var($_REQUEST['msg'],FILTER_SANITIZE
 $msgtimeout = null; // from bot to pokeDirector
 if (isset($_REQUEST['msgtimeout'])) $msgtimeout = (filter_var($_REQUEST['msgtimeout'],FILTER_SANITIZE_STRING));
 
-$traytipmsg = null; // from bot to pokeDirector
+$traytipmsg = ""; // from bot to pokeDirector
 if (isset($_REQUEST['traytipmsg'])) $traytipmsg = (filter_var($_REQUEST['traytipmsg'],FILTER_SANITIZE_STRING));
-
-$field = null; // from bot to pokeDirector
-if (isset($_REQUEST['field'])) $field = (filter_var($_REQUEST['field'],FILTER_SANITIZE_STRING));
 
 $addparam = null; // from bot to pokeDirector
 if (isset($_REQUEST['addparam'])) $addparam = $_REQUEST['addparam'];
@@ -157,6 +155,12 @@ if (isset($_REQUEST['profilename'])) $profile= (filter_var($_REQUEST['profilenam
 /*
 
 stuff I was using in earlier releases, none of which is required, though director may pass it with no problems.
+
+$field = null; // from bot to pokeDirector
+if (isset($_REQUEST['field'])) $field = (filter_var($_REQUEST['field'],FILTER_SANITIZE_STRING));
+
+$fields = null; // from bot to pokeDirector
+if (isset($_REQUEST['fields'])) $fields = (filter_var($_REQUEST['fields'],FILTER_SANITIZE_STRING));
 
 $compname = "";
 if (isset($_REQUEST['compname'])) $compname= (str_replace(' ', '',filter_var($_REQUEST['compname'],FILTER_SANITIZE_STRING)));
@@ -248,7 +252,7 @@ if(file_exists($DBPATH)) {
 		launched TIMESTAMP NULL,
 		login TIMESTAMP NULL,
 		lastUpdate TIMESTAMP NULL,
-		status TEXT NULL
+		alert TEXT NULL
 		);
 
 		CREATE TABLE pokeDirector(
@@ -256,13 +260,18 @@ if(file_exists($DBPATH)) {
 		received TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 		profile TEXT NULL,
 		action TEXT NULL,
-		field TEXT NULL,
+		fields TEXT NULL,
 		time TEXT NULL,
 		msg TEXT NULL,
 		msgtimeout TEXT NULL,
 		traytipmsg TEXT NULL,
 		addparam TEXT NULL,
 		neatonote TEXT NULL
+		);
+		
+		CREATE TABLE lastMaintenance(
+		server TEXT NULL PRIMARY KEY,
+		lastTimestamp TIMESTAMP NULL
 		);
 		");
 		// Clean up after ourselves, close the database
@@ -327,8 +336,8 @@ if ($notice == 'launched') {
 		// open the PDO database
 		$File_DB = new PDO('sqlite:'.$DBPATH);	
 		$File_DB->setAttribute(PDO::ATTR_ERRMODE,PDO::ERRMODE_EXCEPTION);
-		$query = "replace into pokeNEATO ( hash, profile, server, status, pid, launched, login, lastUpdate  ) values 
-		( :hash, :profile, :server, 'Launched', :pid, CURRENT_TIMESTAMP, NULL, NULL );";
+		$query = "replace into pokeNEATO ( hash, profile, server, pid, launched, login, lastUpdate  ) values 
+		( :hash, :profile, :server, :pid, CURRENT_TIMESTAMP, NULL, NULL );";
 		
 		$dbObject = $File_DB->prepare($query);
 		$dbObject->bindParam(':hash', $hash);
@@ -353,6 +362,11 @@ if ($notice == 'launched') {
 	}
 	exit();	
 }
+if ($notice == "stopping") {
+	$reply['reply']="Go ahead, make my day!";
+	echo json_encode($reply);
+	exit();
+}
 
 if ($notice == "stopped") {
 	// request coming from director, indicating director closed the bot.
@@ -360,19 +374,7 @@ if ($notice == "stopped") {
 		$File_DB = new PDO('sqlite:'.$DBPATH);		
 		$File_DB->setAttribute(PDO::ATTR_ERRMODE,PDO::ERRMODE_EXCEPTION);
 		
-		/*
-
-		insert code here to check if bot was stopped before ever successfully logging in, if so it could mean:
-		
-		1) server is down ... for maint or whatever...
-		2) ip ban
-		3) bad proxy
-		
-		response would be t
-		
-		*/
-		
-		$dbObject = $File_DB->prepare("update pokeNEATO set status = 'Offline', pid = NULL, launched = NULL, login = NULL, lastUpdate = CURRENT_TIMESTAMP where hash = :hash");
+		$dbObject = $File_DB->prepare("update pokeNEATO set pid = NULL, launched = NULL, login = NULL, lastUpdate = CURRENT_TIMESTAMP where hash = :hash");
 		$dbObject->bindParam(':hash', $hash);
 		$dbObject->execute();
 
@@ -406,8 +408,7 @@ if (($notice == 'schedulepoke')||($notice == 'requestedpoke')) {
 		if ($dbObject->fetch()!==false) {
 			// there are more messages in the pokeDirector queue
 			$reply['pokeagain']= true;
-			$reply['debug']="Hit me again, Sam.";
-			$reply['avoidrefreshgrid']=true;
+			$reply['avoidrefreshgrid']="true";
 		}
 		
 		if ($reply['msgid'] != null) {
@@ -420,34 +421,14 @@ if (($notice == 'schedulepoke')||($notice == 'requestedpoke')) {
 		$File_DB = null;	
 		// encode the array as JSON and send to TheDirector
 
-		$reply = (object) array_filter((array) $reply); // strip null fields.
-		/*
-		$jsonReply = '{'; // begin construction of reply
-		if ($reply['msgid'] != null) {
-			
-			// special case we have to begin with ' instead of "
-			if ($reply['addparam'] != null) $jsonReply .= '"addparam": \''.$reply['addparam'].'\', '; 
-			
-			if ($reply['action'] != null) $jsonReply .= '"action": "'.$reply['action'].'", ';
-			if ($reply['field'] != null) $jsonReply .= '"field": "'.$reply['field'].'", ';
-			if ($reply['profile'] != null) $jsonReply .= '"profile": "'.$reply['profile'].'", ';
-			if ($reply['msg'] != null) $jsonReply .= ' "msg": "'.$reply['msg'].'", ';
-			if ($reply['msgtimeout'] != null) $jsonReply .= '"msgtimeout": "'.$reply['msgtimeout'].'", ';
-			if ($reply['neatonote'] != null) $jsonReply .= '"neatonote":"'.$reply['neatonote'].'", ';
-			if ($reply['time'] != null) $jsonReply .= '"time":"'.$reply['time'].'", ';
-			if ($reply['traytipmsg'] != null) $jsonReply .= '"traytipmsg": "'.$reply['traytipmsg'].'", ';
-
-			if (isset($reply['pokeagain'])) $jsonReply .= '"pokeagain": "1", "avoidrefreshgrid": "1", ';
-
-			$jsonReply .= '"msgid": "'.$reply['msgid'].'"';
+		if (isset($reply['fields'])){
+			$reply['fields'] = json_decode($reply['fields']);
 		}
-		$jsonReply .= '}'; // finish construction of reply
-		*/
+		$reply = (object) array_filter((array) $reply); // strip null fields.
 		
 		header('Content-Type: text/plain'); // make it plain text rather than html so linebreaks show correctly.
 		
-		echo json_encode($reply); //<-- old way of doing things, we are reinventing JSON in 2017!		
-		//echo $jsonReply; // send Bastardized JSON to director.
+		echo json_encode($reply); //
 		
 	} catch(PDOException $e) {
 	    // Print PDOException message
@@ -508,7 +489,8 @@ if($notice == 'running') {
 	}
 
 	*/
-		$reply['reply'] = 'Ok, its running';
+
+	$reply['reply'] = 'Running';
 		
 	// encode the array as JSON and send to TheDirector
 	echo json_encode($reply);
@@ -549,7 +531,7 @@ if ($action == 'login') {
 		$row = $dbObject->fetch();
 		$profile = $row[0];
 				
-		$query = "update pokeNEATO set lordname = :lordName, status = 'On-line', login = CURRENT_TIMESTAMP, lastUpdate = CURRENT_TIMESTAMP where hash = :hash;";
+		$query = "update pokeNEATO set lordname = :lordName, login = CURRENT_TIMESTAMP, lastUpdate = CURRENT_TIMESTAMP where hash = :hash;";
 		$dbObject = $File_DB->prepare($query);
 		$dbObject->bindParam(':lordName', $lordName);
 		$dbObject->bindParam(':hash', $hash);
@@ -563,6 +545,10 @@ if ($action == 'login') {
 		$dbObject->bindParam(':profile', $profile);
 		$dbObject->bindParam(':traytip', $traytip);
 		$dbObject->execute();
+		
+		/* 
+		
+		this can be done with updateprofile action
 		
 		if ($profile != $fixedProfile){
 			
@@ -585,6 +571,8 @@ if ($action == 'login') {
 			//$dbObject->execute();
 		}
 		
+		*/
+			
 		// Clean up after ourselves, close the database
 		$File_DB = null;
 		echo "PokeNEATO ".VERSION." : SUCCESSFULL LOGIN to $server for account $lordName";
@@ -599,8 +587,72 @@ if ($action == 'login') {
 }
 
 if ($action == 'update') {
-	// request coming from bot 
+	// request coming from bot - old method supplies neatonote - still works this way but gets appended to the Alert field
+	// if you send "alert":"blah" it will replace current alert message.
+	try {
+		$File_DB = new PDO('sqlite:'.$DBPATH);		
+		$File_DB->setAttribute(PDO::ATTR_ERRMODE,PDO::ERRMODE_EXCEPTION);
 		
+		if ($email == "") {
+			
+			// email not passed in, attempt to find director profile based on lord name and server.
+				
+			$query ="select profile, alert from pokeNEATO where lordName = :lordname and server = :server;";
+			$dbObject = $File_DB->prepare($query);	
+			$dbObject->bindParam(':lordname', $lordName);
+			$dbObject->bindParam(':server', $server);
+			$dbObject->execute();
+			
+			$row = $dbObject->fetch();
+			$profile = $row[0];
+			$alert = $row[1];
+
+			} else {			
+		
+			$query ="select profile, alert from pokeNEATO where hash = :hash;";
+			$dbObject = $File_DB->prepare($query);	
+			$dbObject->bindParam(':hash', $hash);
+			$dbObject->execute();
+		
+			$row = $dbObject->fetch();
+			$profile = $row[0];
+			$alert = $row[1];
+		}
+		if ($alert == "") {
+			if (substr($neatonote,0,1)==':'){
+				// the string begins with : so we will erase what was in the neatonote field completely with new information minus the leading colon.
+				$neatonote = substr($neatonote,1); // trim the colon off.
+			} else {
+				// append the incoming update to existing alert
+				$neatonote = $alert.' '.$neatonote;
+			}
+		} else {
+			$neatonote = $alert; // if alert is passed in rather than 
+		}
+		$query = "update pokeNEATO set lastUpdate = CURRENT_TIMESTAMP, alert = :alert where hash = :hash";
+		$dbObject = $File_DB->prepare($query);
+		$dbObject->bindParam(':hash', $hash);
+		$dbObject->bindParam(':alert', $neatonote);
+		$dbObject->execute();	
+		
+		$action = "updateprofile";
+		$addparam = "Alert=".$neatonote;
+		
+		// Clean up after ourselves, close the database
+		$File_DB = null;
+	
+	} catch(PDOException $e) {
+		// Print PDOException message
+		echo "PokeNEATO ".VERSION." : Uh oh, Scooby! problem on action = $action
+		profile:$profile
+		query:$query
+		".$e->getMessage();
+		exit();
+	}
+}	
+/*	
+	old code....
+
 	try {
 		$File_DB = new PDO('sqlite:'.$DBPATH);		
 		$File_DB->setAttribute(PDO::ATTR_ERRMODE,PDO::ERRMODE_EXCEPTION);
@@ -666,7 +718,9 @@ if ($action == 'update') {
 		".$e->getMessage();
 	}
 	exit();	
-}
+	*/
+
+/* not needed, more powerfull option developed
 
 if ($action == 'neatofield') {
 	// request coming from bot, indicating neato wants director to change a field in specified profile,
@@ -698,20 +752,84 @@ if ($action == 'neatofield') {
 			$profile = $row[0];
 			
 		}		
-		
-		$query ="insert into pokeDirector ( profile, action, field, addparam) values ( :profile, 'neatofield', :field, :addparam);";
-		$dbObject = $File_DB->prepare($query);
+		if ($field){
+			$query ="insert into pokeDirector ( profile, action, field, addparam) values ( :profile, 'neatofield', :field, :addparam);";
+			$dbObject = $File_DB->prepare($query);
 
-		$dbObject->bindParam(':profile', $profile);
-		$dbObject->bindParam(':field', $field);
-		$dbObject->bindParam(':addparam', $addparam);
-		$dbObject->execute();
-		
+			$dbObject->bindParam(':profile', $profile);
+			$dbObject->bindParam(':field', $field);
+			$dbObject->bindParam(':addparam', $addparam);
+			$dbObject->execute();
+		}
+		if ($fields){
+			$query ="insert into pokeDirector ( profile, action, fields) values ( :profile, 'neatofield', :fields);";
+			$dbObject = $File_DB->prepare($query);
+			$dbObject->bindParam(':profile', $profile);
+			$dbObject->bindParam(':fields', $fields);
+			$dbObject->execute();
+		}
 		// Clean up after ourselves, close the database
 		$File_DB = null;
 		
 		// let calling script know everything is fine.
 		echo "PokeNEATO ".VERSION." : SUCCESSFULLY POSTED $profile $action $field $addparam to pokeDirector!";
+
+	} catch(PDOException $e) {
+	    // Print PDOException message
+	    echo "PokeNEATO ".VERSION." : Uh oh, Scooby! problem on action = $action
+		profile:$profile
+		query:$query
+		".$e->getMessage();
+	}
+	exit();	
+}
+
+*/
+
+if ($action == 'updateprofile') {
+	// request coming from bot, indicating neato wants director to update multiple field in specified
+	// server and lord name. requires "addparam" variable specifying fields in following format:
+	
+	// {server:"123",lordName:"TECH",action:"updateprofile",addparam:"Notes=1 bad mofo,MaintainOn=Yes,NEATONote=TECH,anotherColumn=whatever",t:date().time}
+	
+	try {
+		$File_DB = new PDO('sqlite:'.$DBPATH);		
+		$File_DB->setAttribute(PDO::ATTR_ERRMODE,PDO::ERRMODE_EXCEPTION);		
+	
+		if ($profile == "") {
+			// find director profile based on lord name and server.
+		
+			$query ="select profile from pokeNEATO where lordName = :lordname and server = :server;";
+			$dbObject = $File_DB->prepare($query);	
+			$dbObject->bindParam(':lordname', $lordName);
+			$dbObject->bindParam(':server', $server);
+			$dbObject->execute();			
+			$row = $dbObject->fetch();
+			$profile = $row[0];
+		}
+		
+		$stuff = explode(",",$addparam);
+		
+		$fields = "[";
+		
+		foreach ($stuff as $field){
+			$thisField=explode("=",$field);
+			if (isset($thisField[0])&&isset($thisField[1])) $fields.='{"profile":"'.$profile.'", "field": "'.$thisField[0].'", "value": "'.$thisField[1].'"},';
+		}
+		
+		$fields = substr($fields, 0, -1)."]"; // trim off the last comma and close the array brace
+
+		$query ="insert into pokeDirector ( profile, action, fields) values ( :profile, 'neatofield', :fields);";
+		$dbObject = $File_DB->prepare($query);
+		$dbObject->bindParam(':profile', $profile);
+		$dbObject->bindParam(':fields', $fields);
+		$dbObject->execute();
+
+		// Clean up after ourselves, close the database
+		$File_DB = null;
+		
+		// let calling script know everything is fine.
+		echo "PokeNEATO ".VERSION." : SUCCESSFULLY POSTED $profile $action $fields to pokeDirector!";
 
 	} catch(PDOException $e) {
 	    // Print PDOException message
@@ -841,16 +959,15 @@ if ($action == 'pause') {
 <pre>get "<?=$url;?>" {action:"pause",time:900,t:date().time}</pre>
 <p>Above tells Director to pause launching bots for specified amount of time in seconds.</p>
 
-<pre>get "<?=$url;?>" {action:"neatofield",server:Config.server,lordName:"TECH",field:"MaintainOn",addparam:"On",t:date().time}</pre>
-<p>If "action" is "neatofield", you must also specify "server" and "lordName" of the profile in director that you want to modify, as well as "field" and "addparam". field should be set to the name of the field you wish to modify, addparam should be set to the value you want to set for the field. Above example says to set the "MaintainOn" field for player "TECH" to "On". Theoretically you could write a script to launch accounts that have not logged in today by looking at the alliance member list. You could add columns to director such as "Coins" or "FF" or "BG" or "TotalRes" or "TotalBurn" and update these fields at login.</p>
-
 <pre>get "<?=$url;?>" {action:"stop",server:"123",lordName:"TECH",t:date().time}</pre>
 <p>Above uses action:"stop" and requires server and lord name. Tells director to kill that bot instance (it may relaunch it if the account is set to MaintainOn = Yes). You can issue the following "action" requests to pokeNEATO which it will relay to TheDirector: "stop","start","restart","deleteprofile" all require server and lordName arguments.</p>
 
-<p>Soon as we get the bugs worked out, you can use action:"createprofile" and pass in "addparam" variable with an xml string like so: 
-<pre>get "<?=$url;?>" {action:"createplayer",addparam:'< Account Name="ABC - 123" MaintainOn="Yes" UserName="abc123@gmail.com" Password="passw0rd" Server="123" Title="ABC - 123" Delay="" WindowState="Restored" RestartTime="" SectionHead="" LastRunOn="YoMomma" RestartMem="0" PID="" LastLaunched="" SortOrder="123" Notes="Blah Blah" Notes2="Blah" RunBetweenStart="" RunBetweenEnd="" CreatedDate="2017-01-10 04:20:00" UpdatedDate="" AutorunScripts="" SpecificExe="" ProfileParams="-password passw0rd" NEATONote="On-line" ProfileProxy="" ProxyBypass="0" PrependGoals="" AppendGoals=""/>',t:date().time}</pre>
+<p>You can use action:"createprofile" and pass in "addparam" variable with an xml string like so: 
+<pre>get "<?=$url;?>" {action:"createplayer",addparam:'< Account Name="ABC - 123" MaintainOn="Yes" UserName="abc123@gmail.com" Password="passw0rd" Server="123" Title="ABC - 123" WindowState="Restored" SortOrder="123" Notes="Blah Blah" CreatedDate="2017-01-10 04:20:00" SpecificExe="" ProfileParams="-password passw0rd" />',t:date().time}</pre>
+
+<pre>get "<?=$url;?>" {action:"updateprofile",server:Config.server,lordName:"TECH",addparam:"MaintainOn=On,Alert=Blah Blah Blah",t:date().time}</pre>
+<p>If "action" is "updateprofile", you must also specify "server" and "lordName" of the profile in director that you want to modify, as well as "addparam" which should contain "field=value,field2=value,etc".</p>
 
 </div>
 </body>
 </html>
-
